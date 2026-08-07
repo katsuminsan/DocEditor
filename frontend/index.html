@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DocEditor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="toggleSidebar" title="サイドバー">☰</button>
+    <div class="document-title"><strong id="fileName">Untitled.dcf</strong><span id="dirtyBadge">保存済み</span></div>
+    <div class="top-actions">
+      <button id="undo">↶ Undo</button><button id="redo">↷ Redo</button>
+      <button id="newDoc">新規</button><button id="openDoc">開く</button><button id="saveDoc">保存</button><button id="saveAsDoc">名前を付けて保存</button>
+      <button id="exportHtml">HTML出力</button><button id="validate">検証</button><button id="quitApp">終了</button><span id="validationDot">●</span>
+    </div>
+  </header>
+  <main id="layout" class="props-closed">
+    <aside id="sidebar">
+      <nav class="tabs"><button data-tab="blocks" class="active">ブロック</button><button data-tab="outline">構造</button><button data-tab="files">ファイル</button><button data-tab="assist">支援</button></nav>
+      <section data-panel="blocks"><div id="blockList"></div></section>
+      <section data-panel="outline" hidden><div id="outline"></div></section>
+      <section data-panel="files" hidden>
+        <button id="fileNew">📄 新規作成</button><button id="fileOpen">📂 開く</button><button id="fileSave">💾 保存</button><button id="fileSaveAs">💾 名前を付けて保存</button><button id="fileExport">🌐 HTML出力</button>
+        <h3>最近使ったフォルダ</h3><div id="recentFolders"></div><h3>ピン留めフォルダ</h3><div id="pinnedFolders"></div>
+      </section>
+      <section data-panel="assist" hidden>
+        <input id="search" placeholder="本文を検索"><div id="searchResults"></div>
+        <h3>ショートカット</h3><p><kbd>/</kbd> ブロック検索 / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> プロパティ / 右クリック プロパティ</p>
+        <h3>検証結果</h3><pre id="validation"></pre>
+      </section>
+    </aside>
+    <section id="editor"><div id="canvas"></div></section>
+    <aside id="properties" hidden><div class="pane-title"><strong>プロパティ</strong><button id="closeProps">×</button></div><div id="propBody"></div><button id="applyProps">適用</button></aside>
+  </main>
+  <div id="insertMenu" class="menu" hidden></div>
+  <dialog id="confirmDialog"><p id="confirmText"></p><form method="dialog"><button value="save">保存</button><button value="discard">破棄</button><button value="cancel">キャンセル</button></form></dialog>
+  <dialog id="outputDialog"><pre id="dialogText"></pre><button onclick="outputDialog.close()">閉じる</button></dialog>
+  <script src="app.js"></script>
+</body>
+</html>
