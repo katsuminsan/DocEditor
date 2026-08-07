@@ -16,7 +16,7 @@ def main():
         height=860,
         min_size=(960, 640),
     )
-    api.window = window
+    api._window = window
     webview.start(debug=False)
 
 

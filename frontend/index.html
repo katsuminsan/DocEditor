@@ -1,1 +1,45 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DocEditor</title><link rel="stylesheet" href="style.css"></head><body><header><h1>DocEditor</h1><div><button id="undo">Undo</button><button id="redo">Redo</button><button id="normalize">Normalize</button><button id="validate">Validate</button><button id="export">HTML</button></div></header><main><aside><h2>Components</h2><button data-add="Heading">Heading</button><button data-add="Paragraph">Paragraph</button><button data-add="Callout">Callout</button><button data-add="CodeBlock">Code</button><button data-add="Divider">Divider</button><h2>Outline</h2><div id="outline"></div></aside><section id="editor"><div class="hint">window.pywebview.api 経由で Python Operation API を呼び出します。</div><div id="canvas"></div></section><aside><h2>Properties</h2><label>Selected ID<input id="selected" readonly></label><label>Text<textarea id="text"></textarea></label><button id="applyText">Apply Text</button><h2>Validation</h2><pre id="validation"></pre></aside></main><dialog id="dialog"><pre id="dialogText"></pre><button onclick="dialog.close()">Close</button></dialog><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>DocEditor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1>DocEditor</h1>
+        <div><button id="undo">Undo</button><button id="redo">Redo</button><button
+                id="normalize">Normalize</button><button id="validate">Validate</button><button
+                id="export">HTML</button></div>
+    </header>
+    <main>
+        <aside>
+            <h2>Components</h2><button data-add="Heading">Heading</button><button
+                data-add="Paragraph">Paragraph</button><button data-add="Callout">Callout</button><button
+                data-add="CodeBlock">Code</button><button data-add="Divider">Divider</button>
+            <h2>Outline</h2>
+            <div id="outline"></div>
+        </aside>
+        <section id="editor">
+            <div class="hint">window.pywebview.api 経由で Python Operation API を呼び出します。</div>
+            <div id="canvas"></div>
+        </section>
+        <aside>
+            <h2>Properties</h2><label>Selected ID<input id="selected" readonly></label><label>Text<textarea
+                    id="text"></textarea></label><button id="applyText">Apply Text</button>
+            <h2>Validation</h2>
+            <pre id="validation"></pre>
+        </aside>
+    </main>
+    <dialog id="dialog">
+        <pre id="dialogText"></pre><button onclick="dialog.close()">Close</button>
+    </dialog>
+
+    
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -11,7 +11,7 @@ from .validation import validate_package
 
 class Api:
     def __init__(self):
-        self.window = None
+        self._window = None
         self.package = sample_package()
         self.history = []
         self.future = []
