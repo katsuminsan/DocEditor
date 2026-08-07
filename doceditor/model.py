@@ -92,6 +92,8 @@ def sample_document() -> dict:
         heading("独自ドキュメントプラットフォーム", 1),
         paragraph("Node の木構造、Theme、Resource、Operation API に基づいて業務文書を編集します。"),
         node("Callout", properties={"kind": "info", "title": "設計思想", "icon": "info", "collapsed": False}, children=[paragraph("意味と見た目を分離し、保存形式は JSON ベースの .dcf とします。")]),
+        node("List", properties={"kind": "unordered", "tight": False, "nesting_level": 0}, children=[node("ListItem", properties={"checked": None}, children=[paragraph("＋メニュー、/ コマンド、左サイドバーからブロックを追加できます。")])]),
+        node("Quote", children=[text("本文キャンバス上で直接編集できます。")]),
     ])
     return node("Document", properties={"title": "新規ドキュメント"}, content={}, children=[root])
 

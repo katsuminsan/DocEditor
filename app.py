@@ -1,9 +1,6 @@
-from doceditor.api import Api
+import webview
 
-try:
-    import webview
-except ImportError as exc:
-    raise SystemExit("pywebview is required. Install with: pip install -r requirements.txt") from exc
+from doceditor.api import Api
 
 
 def main():
@@ -12,11 +9,11 @@ def main():
         "DocEditor",
         "frontend/index.html",
         js_api=api,
-        width=1280,
-        height=860,
-        min_size=(960, 640),
+        width=1320,
+        height=900,
+        min_size=(1024, 680),
     )
-    api._window = window
+    api.window = window
     webview.start(debug=False)
 
 

@@ -63,6 +63,8 @@ def apply_operation(package: dict, operation: dict) -> dict:
         target.setdefault("properties", {})[operation["key"]] = operation.get("value"); touch(target)
     elif op == "UpdateContent" and target:
         target.setdefault("content", {})[operation["key"]] = operation.get("value"); touch(target)
+    elif op == "UpdateMetadata" and target:
+        target.setdefault("metadata", {})[operation["key"]] = operation.get("value"); touch(target)
     elif op == "ToggleVisibility" and target:
         target.setdefault("metadata", {})["visible"] = not target.get("metadata", {}).get("visible", True); touch(target)
     elif op == "ToggleLock" and target:
