@@ -8,7 +8,7 @@
 </head>
 <body>
   <header class="topbar">
-    <button id="toggleSidebar" title="サイドバー">☰</button>
+    <button id="toggleSidebar" title="メニュー幅切替">☰</button>
     <div class="document-title"><strong id="fileName">Untitled.dcf</strong><span id="dirtyBadge">保存済み</span></div>
     <div class="top-actions">
       <button id="undo">↶ Undo</button><button id="redo">↷ Redo</button>
@@ -16,20 +16,26 @@
       <button id="exportHtml">HTML出力</button><button id="validate">検証</button><button id="quitApp">終了</button><span id="validationDot">●</span>
     </div>
   </header>
-  <main id="layout" class="props-closed">
+  <main id="layout" class="props-closed menu-collapsed">
     <aside id="sidebar">
-      <nav class="tabs"><button data-tab="blocks" class="active">ブロック</button><button data-tab="outline">構造</button><button data-tab="files">ファイル</button><button data-tab="assist">支援</button></nav>
-      <section data-panel="blocks"><div id="blockList"></div></section>
-      <section data-panel="outline" hidden><div id="outline"></div></section>
-      <section data-panel="files" hidden>
-        <button id="fileNew">📄 新規作成</button><button id="fileOpen">📂 開く</button><button id="fileSave">💾 保存</button><button id="fileSaveAs">💾 名前を付けて保存</button><button id="fileExport">🌐 HTML出力</button>
-        <h3>最近使ったフォルダ</h3><div id="recentFolders"></div><h3>ピン留めフォルダ</h3><div id="pinnedFolders"></div>
-      </section>
-      <section data-panel="assist" hidden>
-        <input id="search" placeholder="本文を検索"><div id="searchResults"></div>
-        <h3>ショートカット</h3><p><kbd>/</kbd> ブロック検索 / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> プロパティ / 右クリック プロパティ</p>
-        <h3>検証結果</h3><pre id="validation"></pre>
-      </section>
+      <button id="toggleMenuMode" class="menu-toggle" title="アコーディオンメニュー開閉">⇔</button>
+      <nav class="accordion-menu">
+        <button class="accordion-head active" data-tab="blocks"><span class="menu-icon">▧</span><span class="menu-label">ブロック</span></button>
+        <section data-panel="blocks"><div id="blockList"></div></section>
+        <button class="accordion-head" data-tab="outline"><span class="menu-icon">☷</span><span class="menu-label">構造</span></button>
+        <section data-panel="outline" hidden><div id="outline"></div></section>
+        <button class="accordion-head" data-tab="files"><span class="menu-icon">📁</span><span class="menu-label">ファイル</span></button>
+        <section data-panel="files" hidden>
+          <button id="fileNew">📄 新規作成</button><button id="fileOpen">📂 開く</button><button id="fileSave">💾 保存</button><button id="fileSaveAs">💾 名前を付けて保存</button><button id="fileExport">🌐 HTML出力</button>
+          <h3>最近使ったフォルダ</h3><div id="recentFolders"></div><h3>ピン留めフォルダ</h3><div id="pinnedFolders"></div>
+        </section>
+        <button class="accordion-head" data-tab="assist"><span class="menu-icon">?</span><span class="menu-label">支援</span></button>
+        <section data-panel="assist" hidden>
+          <input id="search" placeholder="本文を検索"><div id="searchResults"></div>
+          <h3>ショートカット</h3><p><kbd>/</kbd> ブロック検索 / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> プロパティ / 右クリック プロパティ</p>
+          <h3>検証結果</h3><pre id="validation"></pre>
+        </section>
+      </nav>
     </aside>
     <section id="editor"><div id="canvas"></div></section>
     <aside id="properties" hidden><div class="pane-title"><strong>プロパティ</strong><button id="closeProps">×</button></div><div id="propBody"></div><button id="applyProps">適用</button></aside>

@@ -17,13 +17,17 @@ HTML_TYPES = ("HTML Document (*.html;*.htm)", "All files (*.*)")
 
 class Api:
     def __init__(self):
-        self.window = None
+        self.pywebview_window = None
         self.package = sample_package()
         self.history = []
         self.future = []
         self.dirty = False
         self.current_path: str | None = None
         self.settings = load_settings()
+
+
+    def attach_window(self, pywebview_window):
+        self.pywebview_window = pywebview_window
 
     def _display_name(self):
         return Path(self.current_path).name if self.current_path else self.package["manifest"].get("title", "Untitled.dcf")
@@ -42,8 +46,8 @@ class Api:
     def close_app(self, discard=False):
         if self.dirty and not discard:
             return {"ok": False, "needs_confirm": True, "reason": "dirty"}
-        if self.window:
-            self.window.destroy()
+        if self.pywebview_window:
+            self.pywebview_window.destroy()
         return {"ok": True}
 
     def new_document(self, discard=False):
@@ -88,6 +92,17 @@ class Api:
         if target and target.get("type") == "CodeBlock":
             return self.operation({"type": "UpdateContent", "target_id": node_id, "key": "content", "value": value})
         return self.get_state()
+
+
+    def change_node_type(self, node_id, node_type):
+        target = self._find(self.package["document"], node_id)
+        if not target or target.get("type") in {"Document", "RootSection", "Section", "ListItem"}:
+            return self.get_state()
+        value = self._node_text(target)
+        replacement = self.create_node(node_type, value)
+        replacement["id"] = node_id
+        replacement["metadata"] = target["metadata"]
+        return self.operation({"type": "ReplaceNode", "target_id": node_id, "node": replacement})
 
     def update_node(self, node_id, properties=None, content=None, metadata=None):
         ops = []
@@ -149,7 +164,7 @@ class Api:
         return self.get_state()
 
     def _dialog(self, dialog_type, directory="", save_filename="", file_types=()):
-        if not self.window:
+        if not self.pywebview_window:
             return None
         webview = importlib.import_module("webview")
         file_dialog = getattr(webview, "FileDialog", None)
@@ -158,11 +173,21 @@ class Api:
         else:
             dialog_value = getattr(webview, f"{dialog_type}_DIALOG")
         initial = directory or (str(Path(self.current_path).parent) if self.current_path else (self.settings.get("recent_folders") or [str(Path.home())])[0])
-        return self.window.create_file_dialog(dialog_value, directory=initial, save_filename=save_filename, file_types=file_types)
+        return self.pywebview_window.create_file_dialog(dialog_value, directory=initial, save_filename=save_filename, file_types=file_types)
 
     def _ensure_suffix(self, path, suffix):
         p = Path(path)
         return str(p if p.suffix else p.with_suffix(suffix))
+
+
+    def _node_text(self, n):
+        if n.get("type") == "Heading":
+            return n.get("content", {}).get("text", "")
+        if n.get("type") == "CodeBlock":
+            return n.get("content", {}).get("content", "")
+        if n.get("type") == "Text":
+            return n.get("content", {}).get("text", "")
+        return "".join(self._node_text(child) for child in n.get("children", []))
 
     def _find(self, n, node_id):
         if n.get("id") == node_id: return n

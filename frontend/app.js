@@ -20,7 +20,7 @@ function renderNode(n){
   if(n.type==='Document'||n.type==='RootSection'||n.type==='Section') return (n.children||[]).map(renderNode).join('');
   if(n.type==='Heading') return wrap(`<h${n.properties.level} class="editable" contenteditable="true" data-edit="${n.id}">${esc(n.content.text)}</h${n.properties.level}>`,'H');
   if(n.type==='Paragraph') return wrap(`<p class="editable" contenteditable="true" data-edit="${n.id}">${(n.children||[]).map(inline).join('') || '<br>'}</p>`,'¶');
-  if(n.type==='Callout') return wrap(`<div class="callout"><strong>${esc(n.properties.title)}</strong>${(n.children||[]).map(renderNode).join('')}</div>`,'ⓘ');
+  if(n.type==='Callout') return wrap(`<div class="callout"><strong class="editable" contenteditable="true" data-edit-title="${n.id}">${esc(n.properties.title)}</strong>${(n.children||[]).map(renderNode).join('')}</div>`,'ⓘ');
   if(n.type==='CodeBlock') return wrap(`<pre class="editable code-edit" contenteditable="true" data-edit="${n.id}">${esc(n.content.content)}</pre>`,'{}');
   if(n.type==='Divider') return wrap('<hr>','—');
   if(n.type==='List') return wrap(`<${n.properties.kind==='ordered'?'ol':'ul'}>${(n.children||[]).map(renderNode).join('')}</${n.properties.kind==='ordered'?'ol':'ul'}>` , n.properties.kind==='ordered'?'1.':'•');
@@ -51,7 +51,8 @@ function refresh(s){
 function renderProps(){
   const n = selectedId && find(state.package.document, selectedId);
   if(!n){ $('#propBody').innerHTML = '<p>ブロックを選択してください。</p>'; return; }
-  $('#propBody').innerHTML = `<label>Type<input id="propType" value="${esc(n.type)}" readonly></label><label>ID<input value="${esc(n.id)}" readonly></label><label>Properties<textarea id="propProperties">${esc(JSON.stringify(n.properties||{},null,2))}</textarea></label><label>Content<textarea id="propContent">${esc(JSON.stringify(n.content||{},null,2))}</textarea></label><label><input id="propVisible" type="checkbox" ${n.metadata.visible?'checked':''}> 表示</label><label><input id="propLocked" type="checkbox" ${n.metadata.locked?'checked':''}> ロック</label>`;
+  const blockOptions = blocks.map(b=>`<option value="${b.type}" ${b.type===n.type || (b.type==='OrderedList' && n.type==='List' && n.properties.kind==='ordered') || (b.type==='List' && n.type==='List' && n.properties.kind!=='ordered') ? 'selected' : ''}>${b.icon} ${b.label}</option>`).join('');
+  $('#propBody').innerHTML = `<label>ブロック種別<select id="propType">${blockOptions}</select></label><label>ID<input value="${esc(n.id)}" readonly></label><label>Properties<textarea id="propProperties">${esc(JSON.stringify(n.properties||{},null,2))}</textarea></label><label>Content<textarea id="propContent">${esc(JSON.stringify(n.content||{},null,2))}</textarea></label><label><input id="propVisible" type="checkbox" ${n.metadata.visible?'checked':''}> 表示</label><label><input id="propLocked" type="checkbox" ${n.metadata.locked?'checked':''}> ロック</label>`;
 }
 async function ensureSaved(){
   if(!state?.dirty) return 'discard';
@@ -63,8 +64,15 @@ async function ensureSaved(){
 }
 function openInsert(anchor){
   const menu = $('#insertMenu');
-  menu.innerHTML = `<input id="blockSearch" placeholder="/ ブロックを検索">` + blocks.map(b=>`<button class="block-btn" data-insert="${b.type}"><span class="block-icon">${b.icon}</span>${b.label}</button>`).join('');
-  const rect = anchor.getBoundingClientRect(); menu.style.left = `${rect.left}px`; menu.style.top = `${rect.bottom + 4}px`; menu.hidden = false; $('#blockSearch').focus();
+  const renderMenu = (query='') => {
+    const q = query.toLowerCase();
+    const filtered = blocks.filter(b => b.label.toLowerCase().includes(q) || b.type.toLowerCase().includes(q));
+    menu.innerHTML = `<input id="blockSearch" placeholder="/ ブロックを検索" value="${esc(query)}">` + filtered.map(b=>`<button class="block-btn" data-insert="${b.type}"><span class="block-icon">${b.icon}</span>${b.label}</button>`).join('');
+    $('#blockSearch').oninput = e => renderMenu(e.target.value);
+    $('#blockSearch').focus();
+  };
+  renderMenu();
+  const rect = anchor.getBoundingClientRect(); menu.style.left = `${rect.left}px`; menu.style.top = `${rect.bottom + 4}px`; menu.hidden = false;
 }
 async function init(){renderBlocks(); refresh(await api().get_state());}
 document.addEventListener('click', async e => {
@@ -75,11 +83,11 @@ document.addEventListener('click', async e => {
   const plus = e.target.closest('[data-plus]'); if(plus){selectedId=plus.dataset.plus; openInsert(plus);}
   const insert = e.target.closest('[data-insert]'); if(insert){$('#insertMenu').hidden=true; refresh(await api().add_node(currentParent(), insert.dataset.insert, ''));}
 });
-document.addEventListener('focusout', async e => { const edit=e.target.closest('[data-edit]'); if(edit) refresh(await api().update_text(edit.dataset.edit, edit.innerText)); });
+document.addEventListener('focusout', async e => { const edit=e.target.closest('[data-edit]'); if(edit) refresh(await api().update_text(edit.dataset.edit, edit.innerText)); const title=e.target.closest('[data-edit-title]'); if(title) refresh(await api().update_node(title.dataset.editTitle, {title:title.innerText}, null, null)); });
 document.addEventListener('keydown', e => { if(e.key==='/' && e.target.isContentEditable){e.preventDefault(); openInsert(e.target);} if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==='p'){e.preventDefault(); $('#layout').classList.remove('props-closed'); $('#properties').hidden=false; renderProps();} });
 document.addEventListener('contextmenu', e => { const node=e.target.closest('[data-id]'); if(node){e.preventDefault(); selectedId=node.dataset.id; $('#layout').classList.remove('props-closed'); $('#properties').hidden=false; refresh(state);} });
-$('#toggleSidebar').onclick=()=>$('#layout').classList.toggle('sidebar-closed'); $('#closeProps').onclick=()=>{$('#properties').hidden=true;$('#layout').classList.add('props-closed');};
-$('#applyProps').onclick=async()=>{const n=find(state.package.document,selectedId); if(!n)return; refresh(await api().update_node(selectedId, JSON.parse($('#propProperties').value), JSON.parse($('#propContent').value), {visible:$('#propVisible').checked, locked:$('#propLocked').checked}));};
+$('#toggleSidebar').onclick=()=>$('#layout').classList.toggle('sidebar-closed'); $('#toggleMenuMode').onclick=()=>$('#layout').classList.toggle('menu-collapsed'); $('#closeProps').onclick=()=>{$('#properties').hidden=true;$('#layout').classList.add('props-closed');};
+$('#applyProps').onclick=async()=>{const n=find(state.package.document,selectedId); if(!n)return; const newType=$('#propType').value; if(newType && (newType!==n.type && !(n.type==='List' && ['List','OrderedList'].includes(newType)))){refresh(await api().change_node_type(selectedId,newType)); return;} if(n.type==='List' && ((newType==='OrderedList') !== (n.properties.kind==='ordered'))){refresh(await api().change_node_type(selectedId,newType)); return;} refresh(await api().update_node(selectedId, JSON.parse($('#propProperties').value), JSON.parse($('#propContent').value), {visible:$('#propVisible').checked, locked:$('#propLocked').checked}));};
 $('#undo').onclick=async()=>refresh(await api().undo()); $('#redo').onclick=async()=>refresh(await api().redo()); $('#validate').onclick=async()=>$('#validation').textContent=JSON.stringify(await api().validate(),null,2);
 async function guarded(action){const c=await ensureSaved(); if(c==='cancel')return; refresh(await action(c==='discard'));}
 $('#newDoc').onclick=$('#fileNew').onclick=()=>guarded(d=>api().new_document(d)); $('#openDoc').onclick=$('#fileOpen').onclick=()=>guarded(d=>api().open_dialog(d));
