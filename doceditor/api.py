@@ -17,17 +17,12 @@ HTML_TYPES = ("HTML Document (*.html;*.htm)", "All files (*.*)")
 
 class Api:
     def __init__(self):
-        self.pywebview_window = None
         self.package = sample_package()
         self.history = []
         self.future = []
         self.dirty = False
         self.current_path: str | None = None
         self.settings = load_settings()
-
-
-    def attach_window(self, pywebview_window):
-        self.pywebview_window = pywebview_window
 
     def _display_name(self):
         return Path(self.current_path).name if self.current_path else self.package["manifest"].get("title", "Untitled.dcf")
@@ -46,8 +41,10 @@ class Api:
     def close_app(self, discard=False):
         if self.dirty and not discard:
             return {"ok": False, "needs_confirm": True, "reason": "dirty"}
-        if self.pywebview_window:
-            self.pywebview_window.destroy()
+        webview = importlib.import_module("webview")
+        active_window = webview.active_window()
+        if active_window:
+            active_window.destroy()
         return {"ok": True}
 
     def new_document(self, discard=False):
@@ -164,16 +161,17 @@ class Api:
         return self.get_state()
 
     def _dialog(self, dialog_type, directory="", save_filename="", file_types=()):
-        if not self.pywebview_window:
-            return None
         webview = importlib.import_module("webview")
+        active_window = webview.active_window()
+        if not active_window:
+            return None
         file_dialog = getattr(webview, "FileDialog", None)
         if file_dialog is not None:
             dialog_value = getattr(file_dialog, dialog_type)
         else:
             dialog_value = getattr(webview, f"{dialog_type}_DIALOG")
         initial = directory or (str(Path(self.current_path).parent) if self.current_path else (self.settings.get("recent_folders") or [str(Path.home())])[0])
-        return self.pywebview_window.create_file_dialog(dialog_value, directory=initial, save_filename=save_filename, file_types=file_types)
+        return active_window.create_file_dialog(dialog_value, directory=initial, save_filename=save_filename, file_types=file_types)
 
     def _ensure_suffix(self, path, suffix):
         p = Path(path)
